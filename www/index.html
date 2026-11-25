@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXTECH REPAIR</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101014;color:white;font-family:Arial,sans-serif;padding:18px}
+header{text-align:center;padding:15px}
+h1{color:#ff3030;margin-bottom:5px}
+small{color:#aaa}
+.stats{display:flex;gap:10px;margin:18px 0}
+.stat{background:#202027;padding:15px;border-radius:12px;flex:1;text-align:center}
+.stat strong{display:block;font-size:25px;color:#ff3939}
+section{background:#202027;padding:16px;border-radius:14px;margin-bottom:18px}
+h2{font-size:18px;margin-top:0}
+input,select,textarea{width:100%;padding:13px;margin:7px 0;background:#111118;color:white;border:1px solid #444;border-radius:8px;font-size:15px}
+button{background:#e52b35;color:white;border:0;border-radius:8px;padding:13px;font-weight:bold;width:100%;margin-top:8px}
+.job{background:#292930;padding:13px;border-radius:10px;margin:10px 0}
+.job p{color:#ccc;margin:7px 0}
+.job button{width:auto;padding:9px 12px}
+.ready{color:#57db83}
+.pending{color:#ffbd52}
+</style>
+</head>
+<body>
+<header>
+<h1>NEXTECH REPAIR</h1>
+<small>Gestión de reparaciones</small>
+</header>
+
+<div class="stats">
+<div class="stat"><strong id="total">0</strong>Trabajos</div>
+<div class="stat"><strong id="pending">0</strong>Pendientes</div>
+<div class="stat"><strong id="ready">0</strong>Listos</div>
+</div>
+
+<section>
+<h2>Registrar reparación</h2>
+<form id="repairForm">
+<input id="customer" placeholder="Nombre del cliente" required>
+<input id="phone" placeholder="Teléfono">
+<input id="device" placeholder="Modelo del dispositivo" required>
+<textarea id="problem" placeholder="Falla o reparación" required></textarea>
+<input id="price" type="number" placeholder="Precio en RD$" required>
+<select id="status">
+<option value="Pendiente">Pendiente</option>
+<option value="Listo">Listo</option>
+</select>
+<button type="submit">GUARDAR REPARACIÓN</button>
+</form>
+</section>
+
+<section>
+<h2>Buscar trabajos</h2>
+<input id="search" placeholder="Buscar cliente o dispositivo...">
+<div id="jobs"></div>
+<button onclick="backup()">EXPORTAR COPIA DE SEGURIDAD</button>
+</section>
+
+<script>
+let repairs=JSON.parse(localStorage.getItem("nextech_repairs")||"[]");
+
+function save(){
+localStorage.setItem("nextech_repairs",JSON.stringify(repairs));
+render();
+}
+
+document.getElementById("repairForm").addEventListener("submit",function(e){
+e.preventDefault();
+repairs.push({
+id:Date.now(),
+customer:customer.value,
+phone:phone.value,
+device:device.value,
+problem:problem.value,
+price:Number(price.value),
+status:status.value,
+date:new Date().toLocaleDateString("es-DO")
+});
+save();
+this.reset();
+});
+
+function render(){
+document.getElementById("total").textContent=repairs.length;
+document.getElementById("pending").textContent=repairs.filter(x=>x.status==="Pendiente").length;
+document.getElementById("ready").textContent=repairs.filter(x=>x.status==="Listo").length;
+
+let term=document.getElementById("search").value.toLowerCase();
+let list=repairs.filter(x=>(x.customer+" "+x.device+" "+x.phone).toLowerCase().includes(term));
+
+document.getElementById("jobs").innerHTML=list.map(x=>`
+<div class="job">
+<strong>${escapeHTML(x.customer)}</strong>
+<p>${escapeHTML(x.device)} · ${escapeHTML(x.date)}</p>
+<p>${escapeHTML(x.problem)}</p>
+<p>Teléfono: ${escapeHTML(x.phone||"No indicado")}</p>
+<p>Precio: RD$ ${x.price.toLocaleString("es-DO")}</p>
+<p class="${x.status==="Listo"?"ready":"pending"}">${x.status}</p>
+<button onclick="toggleStatus(${x.id})">Cambiar estado</button>
+<button onclick="removeJob(${x.id})">Eliminar</button>
+</div>`).join("")||"<p>No hay reparaciones registradas.</p>";
+}
+
+function escapeHTML(value){
+return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function toggleStatus(id){
+let job=repairs.find(x=>x.id===id);
+if(job)job.status=job.status==="Listo"?"Pendiente":"Listo";
+save();
+}
+
+function removeJob(id){
+if(confirm("¿Eliminar esta reparación?")){
+repairs=repairs.filter(x=>x.id!==id);
+save();
+}
+}
+
+function backup(){
+let blob=new Blob([JSON.stringify(repairs,null,2)],{type:"application/json"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="nextech-respaldo.json";
+a.click();
+URL.revokeObjectURL(a.href);
+}
+
+document.getElementById("search").addEventListener("input",render);
+render();
+</script>
+</body>
+</html>
