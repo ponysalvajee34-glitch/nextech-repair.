@@ -7,30 +7,56 @@
 <title>NEXTECH REPAIR</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101014;color:white;font-family:Arial,sans-serif;padding:18px}
-header{text-align:center;padding:15px}
-h1{color:#ff3030;margin-bottom:5px}
-small{color:#aaa}
-.stats{display:flex;gap:10px;margin:18px 0}
-.stat{background:#202027;padding:15px;border-radius:12px;flex:1;text-align:center}
-.stat strong{display:block;font-size:25px;color:#ff3939}
-section{background:#202027;padding:16px;border-radius:14px;margin-bottom:18px}
-h2{font-size:18px;margin-top:0}
-input,select,textarea{width:100%;padding:13px;margin:7px 0;background:#111118;color:white;border:1px solid #444;border-radius:8px;font-size:15px}
-button{background:#e52b35;color:white;border:0;border-radius:8px;padding:13px;font-weight:bold;width:100%;margin-top:8px}
-.job{background:#292930;padding:13px;border-radius:10px;margin:10px 0}
-.job p{color:#ccc;margin:7px 0}
-.job button{width:auto;padding:9px 12px}
-.ready{color:#57db83}
+body{margin:0;background:#101014;color:white;font-family:Arial,sans-serif;padding:14px}
+header{text-align:center;padding:14px}
+header h1{margin:0;color:#ff3939;font-size:27px}
+header small{color:#aaa}
+.tabs{display:flex;gap:8px;margin:12px 0}
+.tabs button{flex:1;background:#292930;color:white;border:1px solid #444;padding:13px;border-radius:9px}
+.tabs button.active{background:#e52b35;border-color:#e52b35}
+section{background:#202027;padding:14px;border-radius:12px;margin-bottom:14px}
+h2{font-size:18px;margin:3px 0 14px}
+input,textarea,select{width:100%;padding:13px;margin:6px 0;background:#111;color:white;border:1px solid #444;border-radius:8px;font-size:15px}
+textarea{min-height:65px}
+button{background:#e52b35;color:white;border:0;border-radius:8px;padding:13px;font-weight:bold;font-size:14px;cursor:pointer}
+button.secondary{background:#393940}
+button.danger{background:#9e252b}
+button.full{width:100%;margin-top:8px}
+.stats{display:flex;gap:8px;margin:12px 0}
+.stat{background:#202027;padding:12px;border-radius:10px;flex:1;text-align:center}
+.stat strong{display:block;font-size:23px;color:#ff3939}
+.job{background:#111116;border:1px solid #444;border-radius:10px;padding:12px;margin:9px 0}
+.job p{margin:6px 0;color:#ddd}
+.job button{margin:4px 3px 0 0;padding:9px}
 .pending{color:#ffbd52}
+.ready{color:#57d88b}
+.hidden{display:none!important}
+.ticket-paper{background:white;color:#111;width:100%;max-width:340px;margin:12px auto;padding:12px 10px;font-family:monospace;font-size:12px;line-height:1.4}
+.ticket-paper h2{color:#111;text-align:center;font-size:23px;margin:0 0 3px}
+.ticket-paper .center{text-align:center}
+.ticket-paper .line{border-top:1px dashed #333;margin:8px 0}
+.ticket-paper .total{font-size:19px;font-weight:bold;text-align:center;margin:12px 0}
+.ticket-paper .brand{font-weight:bold}
+.ticket-paper .item{margin:7px 0;overflow-wrap:anywhere}
+.ticket-paper .thanks{text-align:center;margin-top:12px}
+.ticket-actions{display:flex;gap:8px}
+.ticket-actions button{flex:1}
+.hint{color:#aaa;font-size:12px;text-align:center}
 </style>
 </head>
 <body>
+
 <header>
 <h1>NEXTECH REPAIR</h1>
-<small>Gestión de reparaciones</small>
+<small>Gestión de reparaciones y facturación</small>
 </header>
 
+<div class="tabs">
+<button id="tabRep" class="active" onclick="showTab('rep')">REPARACIONES</button>
+<button id="tabTickets" onclick="showTab('tickets')">FACTURAS</button>
+</div>
+
+<div id="repPage">
 <div class="stats">
 <div class="stat"><strong id="total">0</strong>Trabajos</div>
 <div class="stat"><strong id="pending">0</strong>Pendientes</div>
@@ -43,31 +69,79 @@ button{background:#e52b35;color:white;border:0;border-radius:8px;padding:13px;fo
 <input id="customer" placeholder="Nombre del cliente" required>
 <input id="phone" placeholder="Teléfono">
 <input id="device" placeholder="Modelo del dispositivo" required>
-<textarea id="problem" placeholder="Falla o reparación" required></textarea>
-<input id="price" type="number" placeholder="Precio en RD$" required>
+<textarea id="problem" placeholder="Falla o reparación realizada" required></textarea>
+<input id="price" type="number" min="0" placeholder="Precio en RD$" required>
 <select id="status">
 <option value="Pendiente">Pendiente</option>
 <option value="Listo">Listo</option>
 </select>
-<button type="submit">GUARDAR REPARACIÓN</button>
+<button class="full" type="submit">GUARDAR REPARACIÓN</button>
 </form>
 </section>
 
 <section>
 <h2>Buscar trabajos</h2>
-<input id="search" placeholder="Buscar cliente o dispositivo...">
+<input id="search" placeholder="Buscar cliente o dispositivo..." oninput="render()">
 <div id="jobs"></div>
-<button onclick="backup()">EXPORTAR COPIA DE SEGURIDAD</button>
+<button class="secondary full" onclick="backup()">EXPORTAR COPIA DE SEGURIDAD</button>
 </section>
+</div>
+
+<div id="ticketsPage" class="hidden">
+<section>
+<h2>Crear factura</h2>
+<form id="ticketForm">
+<input id="tCustomer" placeholder="Nombre del cliente" required>
+<input id="tPhone" placeholder="Teléfono del cliente">
+<input id="tDevice" placeholder="Modelo del dispositivo" required>
+<textarea id="tWork" placeholder="Trabajo realizado" required></textarea>
+<input id="tPrice" type="number" min="0" placeholder="Total en RD$" required>
+<button class="full" type="submit">GENERAR FACTURA</button>
+</form>
+<p class="hint">La fecha, hora y número de factura se generan automáticamente.</p>
+</section>
+
+<section>
+<h2>Vista previa del ticket</h2>
+<div id="ticketPreview" class="ticket-paper">
+<div class="center">NEXTECH REPAIR</div>
+<div class="line"></div>
+<div class="center">FACTURA DE REPARACIÓN</div>
+<p class="center">Aquí aparecerá tu factura</p>
+<div class="line"></div>
+</div>
+<div class="ticket-actions">
+<button onclick="printTicket()">IMPRIMIR</button>
+<button class="secondary" onclick="sendRawBT()">RAWBT</button>
+</div>
+<p class="hint">Conecta tu impresora y selecciona RawBT para imprimir.</p>
+</section>
+
+<section>
+<h2>Historial de facturas</h2>
+<div id="ticketHistory"></div>
+</section>
+</div>
 
 <script>
 let repairs=JSON.parse(localStorage.getItem("nextech_repairs")||"[]");
+let tickets=JSON.parse(localStorage.getItem("nextech_tickets")||"[]");
+let currentTicket=null;
 
-function save(){
+function saveRepairs(){
 localStorage.setItem("nextech_repairs",JSON.stringify(repairs));
 render();
 }
-
+function saveTickets(){
+localStorage.setItem("nextech_tickets",JSON.stringify(tickets));
+renderTickets();
+}
+function showTab(tab){
+document.getElementById("repPage").classList.toggle("hidden",tab!=="rep");
+document.getElementById("ticketsPage").classList.toggle("hidden",tab!=="tickets");
+document.getElementById("tabRep").classList.toggle("active",tab==="rep");
+document.getElementById("tabTickets").classList.toggle("active",tab==="tickets");
+}
 document.getElementById("repairForm").addEventListener("submit",function(e){
 e.preventDefault();
 repairs.push({
@@ -78,61 +152,158 @@ device:device.value,
 problem:problem.value,
 price:Number(price.value),
 status:status.value,
-date:new Date().toLocaleDateString("es-DO")
+date:new Date().toISOString()
 });
-save();
+saveRepairs();
 this.reset();
 });
-
 function render(){
+let q=document.getElementById("search").value.toLowerCase();
 document.getElementById("total").textContent=repairs.length;
 document.getElementById("pending").textContent=repairs.filter(x=>x.status==="Pendiente").length;
 document.getElementById("ready").textContent=repairs.filter(x=>x.status==="Listo").length;
-
-let term=document.getElementById("search").value.toLowerCase();
-let list=repairs.filter(x=>(x.customer+" "+x.device+" "+x.phone).toLowerCase().includes(term));
-
-document.getElementById("jobs").innerHTML=list.map(x=>`
+document.getElementById("jobs").innerHTML=repairs.filter(x=>(x.customer+" "+x.device+" "+x.phone).toLowerCase().includes(q)).slice().reverse().map(x=>`
 <div class="job">
-<strong>${escapeHTML(x.customer)}</strong>
-<p>${escapeHTML(x.device)} · ${escapeHTML(x.date)}</p>
-<p>${escapeHTML(x.problem)}</p>
-<p>Teléfono: ${escapeHTML(x.phone||"No indicado")}</p>
-<p>Precio: RD$ ${x.price.toLocaleString("es-DO")}</p>
-<p class="${x.status==="Listo"?"ready":"pending"}">${x.status}</p>
+<strong>${esc(x.customer)}</strong>
+<p>${esc(x.device)}</p>
+<p>${esc(x.problem)}</p>
+<p>RD$ ${Number(x.price).toLocaleString("es-DO")} · <span class="${x.status==="Listo"?"ready":"pending"}">${esc(x.status)}</span></p>
 <button onclick="toggleStatus(${x.id})">Cambiar estado</button>
-<button onclick="removeJob(${x.id})">Eliminar</button>
-</div>`).join("")||"<p>No hay reparaciones registradas.</p>";
+<button onclick="ticketFromRepair(${x.id})">Crear factura</button>
+<button class="danger" onclick="deleteRepair(${x.id})">Eliminar</button>
+</div>`).join("")||"<p>No hay trabajos registrados.</p>";
 }
-
-function escapeHTML(value){
-return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-
 function toggleStatus(id){
-let job=repairs.find(x=>x.id===id);
-if(job)job.status=job.status==="Listo"?"Pendiente":"Listo";
-save();
+let x=repairs.find(r=>r.id===id);
+if(x){x.status=x.status==="Listo"?"Pendiente":"Listo";saveRepairs();}
 }
-
-function removeJob(id){
+function deleteRepair(id){
 if(confirm("¿Eliminar esta reparación?")){
-repairs=repairs.filter(x=>x.id!==id);
-save();
+repairs=repairs.filter(x=>x.id!==id);saveRepairs();
 }
 }
-
+function ticketFromRepair(id){
+let x=repairs.find(r=>r.id===id);
+if(!x)return;
+showTab("tickets");
+document.getElementById("tCustomer").value=x.customer;
+document.getElementById("tPhone").value=x.phone||"";
+document.getElementById("tDevice").value=x.device;
+document.getElementById("tWork").value=x.problem;
+document.getElementById("tPrice").value=x.price;
+}
+function nextNumber(){
+let last=Number(localStorage.getItem("nextech_ticket_number")||"0")+1;
+localStorage.setItem("nextech_ticket_number",String(last));
+return String(last).padStart(6,"0");
+}
+document.getElementById("ticketForm").addEventListener("submit",function(e){
+e.preventDefault();
+let now=new Date();
+currentTicket={
+number:nextNumber(),
+customer:tCustomer.value,
+phone:tPhone.value,
+device:tDevice.value,
+work:tWork.value,
+price:Number(tPrice.value),
+date:now.toLocaleDateString("es-DO"),
+time:now.toLocaleTimeString("es-DO",{hour:"2-digit",minute:"2-digit"})
+};
+tickets.push(currentTicket);
+saveTickets();
+showPreview();
+this.reset();
+});
+function esc(s){
+return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function showPreview(){
+if(!currentTicket)return;
+let t=currentTicket;
+document.getElementById("ticketPreview").innerHTML=`
+<h2>NEXTECH REPAIR</h2>
+<div class="center">FACTURA DE REPARACIÓN</div>
+<div class="line"></div>
+<div>Factura: ${esc(t.number)}</div>
+<div>Fecha: ${esc(t.date)}</div>
+<div>Hora: ${esc(t.time)}</div>
+<div class="line"></div>
+<div class="item"><b>CLIENTE:</b><br>${esc(t.customer)}</div>
+${t.phone?`<div class="item"><b>TELÉFONO:</b><br>${esc(t.phone)}</div>`:""}
+<div class="line"></div>
+<div class="item"><b>EQUIPO:</b><br>${esc(t.device)}</div>
+<div class="item"><b>TRABAJO REALIZADO:</b><br>${esc(t.work)}</div>
+<div class="line"></div>
+<div class="total">TOTAL: RD$ ${t.price.toLocaleString("es-DO")}</div>
+<div class="line"></div>
+<div class="thanks">¡Gracias por su preferencia!</div>
+<div class="center">NEXTECH REPAIR</div>`;
+}
+function ticketText(t){
+return [
+"NEXTECH REPAIR",
+"FACTURA DE REPARACION",
+"--------------------------------",
+"Factura: "+t.number,
+"Fecha: "+t.date,
+"Hora: "+t.time,
+"--------------------------------",
+"CLIENTE: "+t.customer,
+t.phone?"TELEFONO: "+t.phone:"",
+"--------------------------------",
+"EQUIPO: "+t.device,
+"TRABAJO REALIZADO:",
+t.work,
+"--------------------------------",
+"TOTAL: RD$ "+t.price.toLocaleString("es-DO"),
+"--------------------------------",
+"Gracias por su preferencia!",
+"",
+""
+].filter(x=>x!=="").join("\n");
+}
+function sendRawBT(){
+if(!currentTicket){alert("Primero genera o selecciona una factura.");return;}
+window.location.href="rawbt:"+encodeURIComponent(ticketText(currentTicket));
+}
+function printTicket(){
+if(!currentTicket){alert("Primero genera o selecciona una factura.");return;}
+let w=window.open("","_blank");
+if(!w){alert("Permite las ventanas emergentes para imprimir.");return;}
+w.document.write(`<html><head><title>Factura</title><style>
+@page{size:80mm auto;margin:2mm}
+body{width:76mm;margin:0 auto;font-family:monospace;font-size:12px;line-height:1.4}
+h2{text-align:center;font-size:22px;margin:0}
+.center{text-align:center}
+.line{border-top:1px dashed #000;margin:8px 0}
+.total{text-align:center;font-size:18px;font-weight:bold;margin:12px 0}
+</style></head><body>${document.getElementById("ticketPreview").innerHTML}</body></html>`);
+w.document.close();w.focus();w.print();
+}
+function renderTickets(){
+document.getElementById("ticketHistory").innerHTML=tickets.slice().reverse().map(t=>`
+<div class="job">
+<strong>Factura #${esc(t.number)}</strong>
+<p>${esc(t.customer)} · ${esc(t.device)}</p>
+<p>RD$ ${Number(t.price).toLocaleString("es-DO")}</p>
+<button onclick="loadTicket('${esc(t.number)}')">Ver factura</button>
+</div>`).join("")||"<p>Todavía no hay facturas.</p>";
+}
+function loadTicket(number){
+currentTicket=tickets.find(t=>t.number===number);
+showPreview();
+}
 function backup(){
-let blob=new Blob([JSON.stringify(repairs,null,2)],{type:"application/json"});
+let data=JSON.stringify({repairs,tickets},null,2);
 let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="nextech-respaldo.json";
+a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));
+a.download="nextech-repair-copia.json";
 a.click();
 URL.revokeObjectURL(a.href);
 }
-
-document.getElementById("search").addEventListener("input",render);
 render();
+renderTickets();
 </script>
 </body>
 </html>
