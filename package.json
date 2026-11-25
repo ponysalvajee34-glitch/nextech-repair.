@@ -1,0 +1,17 @@
+{
+  "name": "nextech-repair",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gestión de reparaciones para NEXTECH REPAIR",
+  "scripts": {
+    "build": "echo Web app lista para Capacitor",
+    "android:sync": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.2.0",
+    "@capacitor/core": "6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.2.0"
+  }
+}

@@ -1,0 +1,22 @@
+NEXTECH REPAIR — PROYECTO PARA GITHUB (V2)
+
+IMPORTANTE: Este ZIP es distinto y tiene un nombre nuevo para que no se confunda con las descargas anteriores.
+
+Al extraerlo, debes ver directamente:
+- package.json
+- capacitor.config.json
+- README.md
+- carpeta www
+- carpeta .github
+
+NO debes ver build.gradle, settings.gradle ni una carpeta app en este ZIP.
+
+PARA SUBIRLO:
+1. En GitHub abre el repositorio nextech-repair.
+2. Pulsa Add file > Upload files.
+3. Sube los archivos y carpetas que aparecen aquí (no subas el ZIP comprimido).
+4. Pulsa Commit changes.
+
+PARA COMPILAR:
+Después de subir todo, abre Actions y busca “Build NEXTECH REPAIR APK”.
+La compilación puede tardar unos minutos. Al terminar, abre la ejecución y descarga el artefacto NEXTECH-REPAIR-APK.
